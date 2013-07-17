@@ -4,23 +4,30 @@
 
 package airbrake;
 
-import static airbrake.ApiKeys.*;
-import static airbrake.Exceptions.*;
-import static java.util.Arrays.*;
+import ch.qos.logback.classic.spi.ThrowableProxy;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static airbrake.ApiKeys.API_KEY;
+import static airbrake.Exceptions.ERROR_MESSAGE;
+import static airbrake.Exceptions.newException;
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
-import java.util.*;
-
-import org.apache.commons.logging.*;
-import org.junit.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class AirbrakeNoticeTest {
 	protected static final Backtrace BACKTRACE = new Backtrace(asList("backtrace is empty"));
 	protected static final Map<String, Object> REQUEST = new HashMap<String, Object>();
 	protected static final Map<String, Object> ENVIRONMENT = new HashMap<String, Object>();
 
-	private final Log logger = LogFactory.getLog(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private final Map<String, Object> EC2 = new HashMap<String, Object>();
 
@@ -58,7 +65,7 @@ public class AirbrakeNoticeTest {
 	@Test
 	public void testNewAirbrakeUsingBuilderNoticeFromException() {
 		final Exception EXCEPTION = newException(ERROR_MESSAGE);
-		final AirbrakeNotice notice = new AirbrakeNoticeBuilder(API_KEY, EXCEPTION).newNotice();
+		final AirbrakeNotice notice = new AirbrakeNoticeBuilder(API_KEY, new ThrowableProxy(EXCEPTION)).newNotice();
 
 		assertThat(notice, is(notNullValue()));
 

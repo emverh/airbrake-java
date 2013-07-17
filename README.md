@@ -6,8 +6,8 @@ This is the notifier jar for integrating apps with [Airbrake](http://airbrake.io
 When an uncaught exception occurs, Airbrake will POST the relevant data
 to the Airbrake server specified in your environment.
 
-The easy way to use airbrake is configuriong log4j appender. Otherwise if you don't 
-use log4j you can use airbrake notifier directly with a very simple API.
+The easy way to use airbrake is configuring a logback appender. Otherwise if you don't
+use logback you can use airbrake notifier directly with a very simple API.
 
 Setting up with Maven
 ---------------------
@@ -16,8 +16,8 @@ Setting up with Maven
   		<dependencies>
     		<dependency>
       		<groupId>io.airbrake</groupId>
-      		<artifactId>airbrake-java</artifactId>
-      		<version>2.2.8</version>
+      		<artifactId>airbrake-java-logback</artifactId>
+      		<version>2.2.9</version>
     		</dependency>
   		</dependencies>
 	</project>
@@ -26,34 +26,25 @@ Without Maven
 -------------
 
 you need to add these libraries to your classpath
- * [airbrake-java-2.2.8](https://github.com/airbrake/airbrake-java/blob/master/maven2/io/airbrake/airbrake-java/2.2.8/airbrake-java-2.2.8.jar?raw=true)
+ * [airbrake-java-2.2.9](https://github.com/davidkeen/airbrake-java/blob/master/maven2/io/airbrake/airbrake-java/2.2.8/airbrake-java-2.2.8.jar?raw=true)
  * [log4j-1.2.14](https://github.com/airbrake/airbrake-java/blob/master/maven2/log4j/1.2.14/log4j-1.2.14.jar?raw=true)
 
-Log4j
------
+Logback
+-------
 
-	log4j.rootLogger=INFO, stdout, airbrake
+    in XML format:
 
-	log4j.appender.stdout=org.apache.log4j.ConsoleAppender
-	log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
-	log4j.appender.stdout.layout.ConversionPattern=[%d,%p] [%c{1}.%M:%L] %m%n
+    <appender name="AIRBRAKE" class="airbrake.AirbrakeAppender">
+        <apiKey>81bff829226bfcb7f72ae8a0de2be9ff</apiKey>
+        <env>production</env>
+        <enabled>true</enabled>
+        <url>http://api.airbrake.io/notifier_api/v2/notices</url>
 
-	log4j.appender.airbrake=airbrake.AirbrakeAppender	
-	log4j.appender.airbrake.api_key=YOUR_AIRBRAKE_API_KEY
-	#log4j.appender.airbrake.env=development
-	#log4j.appender.airbrake.env=production
-	log4j.appender.airbrake.env=test
-	log4j.appender.airbrake.enabled=true
-	#log4j.appender.airbrake.url=http://api.airbrake.io/notifier_api/v2/notices
-
-or in XML format:
-
-	<appender name="AIRBRAKE" class="airbrake.AirbrakeAppender">
-		<param name="api_key" value="YOUR_AIRBRAKE_API_KEY"/>
-		<param name="env" value="test"/>
-		<param name="enabled" value="true"/>
-    <!-- <param name="url" value="http://api.airbrake.io/notifier_api/v2/notices" /> -->
-	</appender>
+        <!-- deny all events with a level below ERROR, that is TRACE, DEBUG, INFO -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
 
 	<root>
 		<appender-ref ref="AIRBRAKE"/>

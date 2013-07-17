@@ -1,10 +1,12 @@
 package airbrake;
 
-import static airbrake.ApiKeys.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import ch.qos.logback.classic.spi.ThrowableProxy;
+import org.junit.Before;
+import org.junit.Test;
 
-import org.junit.*;
+import static airbrake.ApiKeys.API_KEY;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThat;
 
 public class NoticeApiXmlBuilderTest {
 
@@ -16,7 +18,7 @@ public class NoticeApiXmlBuilderTest {
 
 	@Before
 	public void setUp() {
-		productionNoticeBuilder = new AirbrakeNoticeBuilder(API_KEY, newThrowable(), "<blink>production</blink>");
+		productionNoticeBuilder = new AirbrakeNoticeBuilder(API_KEY, new ThrowableProxy(newThrowable()), "<blink>production</blink>");
 	}
 
 	@Test
@@ -26,7 +28,7 @@ public class NoticeApiXmlBuilderTest {
 
 	@Test
 	public void testSendsRequest() throws Exception {
-		AirbrakeNoticeBuilder builder = new AirbrakeNoticeBuilder(API_KEY, newThrowable()) {
+		AirbrakeNoticeBuilder builder = new AirbrakeNoticeBuilder(API_KEY, new ThrowableProxy(newThrowable())) {
 			{
 				setRequest("http://example.com", "carburetor");
 			}
@@ -37,7 +39,7 @@ public class NoticeApiXmlBuilderTest {
 
 	@Test
 	public void testSendsSessionKeyColorAndLights() throws Exception {
-		AirbrakeNoticeBuilder builder = new AirbrakeNoticeBuilder(API_KEY, newThrowable()) {
+		AirbrakeNoticeBuilder builder = new AirbrakeNoticeBuilder(API_KEY, new ThrowableProxy(newThrowable())) {
 			{
 				setRequest("http://example.com", "carburetor");
 				addSessionKey("lights", "<blink>");

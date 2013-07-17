@@ -4,10 +4,11 @@
 
 package airbrake;
 
-import org.apache.log4j.*;
-import org.apache.log4j.spi.*;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.core.AppenderBase;
 
-public class AirbrakeAppender extends AppenderSkeleton {
+public class AirbrakeAppender extends AppenderBase<ILoggingEvent> {
 
 	private final AirbrakeNotifier airbrakeNotifier = new AirbrakeNotifier();
 
@@ -19,23 +20,21 @@ public class AirbrakeAppender extends AppenderSkeleton {
 
 	private Backtrace backtrace = new Backtrace();
 
-	public AirbrakeAppender() {
-		setThreshold(Level.ERROR);
-	}
+    public AirbrakeAppender() {
+        super();
+    }
 
 	public AirbrakeAppender(final String apiKey) {
-		setApi_key(apiKey);
-		setThreshold(Level.ERROR);
+		setApiKey(apiKey);
 	}
 
 	public AirbrakeAppender(final String apiKey, final Backtrace backtrace) {
-		setApi_key(apiKey);
+		setApiKey(apiKey);
 		setBacktrace(backtrace);
-		setThreshold(Level.ERROR);
 	}
 
 	@Override
-	protected void append(final LoggingEvent loggingEvent) {
+	protected void append(final ILoggingEvent loggingEvent) {
 		if (!enabled)
 			return;
 
@@ -44,25 +43,31 @@ public class AirbrakeAppender extends AppenderSkeleton {
 		}
 	}
 
-	@Override
-	public void close() {
+    @Override
+    public void start() {
+        if (apiKey == null) {
+            addError("API key not set for the appender named [" + name +"].");
+        }
+        if (env == null) {
+            addError("Environment not set for the appender named [" + name +"].");
+        }
+        super.start();
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+    }
+
+	public AirbrakeNotice newNoticeFor(final IThrowableProxy throwable) {
+		return new AirbrakeNoticeBuilderUsingFilteredSystemProperties(apiKey, backtrace, throwable, env).newNotice();
 	}
 
-	public AirbrakeNotice newNoticeFor(final Throwable throwable) {
-		return new AirbrakeNoticeBuilderUsingFilteredSystemProperties(apiKey,
-				backtrace, throwable, env).newNotice();
-	}
-
-	private int notifyThrowableIn(final LoggingEvent loggingEvent) {
+	private int notifyThrowableIn(final ILoggingEvent loggingEvent) {
 		return airbrakeNotifier.notify(newNoticeFor(throwable(loggingEvent)));
 	}
 
-	@Override
-	public boolean requiresLayout() {
-		return false;
-	}
-
-	public void setApi_key(final String apiKey) {
+	public void setApiKey(final String apiKey) {
 		this.apiKey = apiKey;
 	}
 
@@ -87,28 +92,12 @@ public class AirbrakeAppender extends AppenderSkeleton {
 	 * @param loggingEvent
 	 * @return
 	 */
-	private boolean thereIsThrowableIn(final LoggingEvent loggingEvent) {
-		return  loggingEvent.getThrowableInformation() != null ||
-				loggingEvent.getMessage() instanceof Throwable;
+	private boolean thereIsThrowableIn(final ILoggingEvent loggingEvent) {
+        return loggingEvent.getThrowableProxy() != null;
 	}
 
-	/**
-	 * Get the throwable information contained in a {@link LoggingEvent}.
-	 * Returns the Throwable passed to the logger or the message if it's a
-	 * Throwable.
-	 * @param loggingEvent
-	 * @return The Throwable contained in the {@link LoggingEvent} or null if there is none.
-	 */
-	private Throwable throwable(final LoggingEvent loggingEvent) {
-		ThrowableInformation throwableInfo = loggingEvent.getThrowableInformation();
-		if (throwableInfo != null)
-			return throwableInfo.getThrowable();
-		
-		Object message = loggingEvent.getMessage();
-		if (message instanceof Throwable)
-			return (Throwable) message;
-		
-		return null;
+    private IThrowableProxy throwable(final ILoggingEvent loggingEvent) {
+        return loggingEvent.getThrowableProxy();
 	}
 
 	protected String getApiKey() {

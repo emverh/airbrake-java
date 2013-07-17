@@ -4,13 +4,14 @@
 
 package airbrake;
 
-import java.util.*;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import org.slf4j.MDC;
 
-import org.apache.log4j.*;
+import java.util.Map;
 
 public class AirbrakeNoticeBuilderUsingFilteredSystemProperties extends AirbrakeNoticeBuilder {
 
-	public AirbrakeNoticeBuilderUsingFilteredSystemProperties(final String apiKey, final Backtrace backtraceBuilder, final Throwable throwable, final String env) {
+	public AirbrakeNoticeBuilderUsingFilteredSystemProperties(final String apiKey, final Backtrace backtraceBuilder, final IThrowableProxy throwable, final String env) {
 		super(apiKey, backtraceBuilder, throwable, env);
 		environment(System.getProperties());
 		addMDCToSession();
@@ -19,8 +20,7 @@ public class AirbrakeNoticeBuilderUsingFilteredSystemProperties extends Airbrake
 	}
 
 	private void addMDCToSession() {
-		@SuppressWarnings("unchecked")
-		Map<String, Object> map = MDC.getContext();
+		Map<String, Object> map = MDC.getCopyOfContextMap();
 
 		if (map != null) {
 			addSessionKey(":key", Integer.toString(map.hashCode()));
