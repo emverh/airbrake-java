@@ -4,15 +4,15 @@
 
 package airbrake;
 
-import ch.qos.logback.classic.spi.IThrowableProxy;
-import ch.qos.logback.classic.spi.StackTraceElementProxy;
-
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.regex.Pattern;
+
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.classic.spi.StackTraceElementProxy;
 
 public class Backtrace implements Iterable<String> {
 
@@ -173,7 +173,7 @@ public class Backtrace implements Iterable<String> {
 	private String messageIn(final IThrowableProxy throwable) {
 		String message = throwable.getMessage();
 		if (message == null) {
-			message = throwable.getClass().getName();
+			message = throwable.getClassName();
 		}
 		return message;
 	}
